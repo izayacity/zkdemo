@@ -51,6 +51,7 @@ public class DistributedLock implements Lock {
             waitForLock();
             lock();
         } else {
+            System.out.println(Thread.currentThread().getName() + " 获得分布式锁！");
             logger.info(Thread.currentThread().getName() + " 获得分布式锁！");
         }
     }
@@ -61,7 +62,7 @@ public class DistributedLock implements Lock {
         if (currentPath == null || currentPath.length() <= 0) {
             // 创建一个临时顺序节点
             currentPath = this.client.createEphemeralSequential(LOCK_PATH + '/', "lock");
-            System.out.println("---------------------------->" + currentPath);
+            System.out.println(Thread.currentThread().getName() + "tryLock create ephemeral node:---------------------------->" + currentPath);
         }
         // 获取所有临时节点并排序，临时节点名称为自增长的字符串如：0000000400
         List<String> childrens = this.client.getChildren(LOCK_PATH);
@@ -82,6 +83,7 @@ public class DistributedLock implements Lock {
         IZkDataListener listener = new IZkDataListener() {
             @Override
             public void handleDataDeleted(String dataPath) throws Exception {
+                System.out.println(Thread.currentThread().getName() + ":捕获到DataDelete事件！---------------------------");
                 logger.info(Thread.currentThread().getName() + ":捕获到DataDelete事件！---------------------------");
                 if (cdl != null) {
                     cdl.countDown();
@@ -112,6 +114,7 @@ public class DistributedLock implements Lock {
     public void unlock() {
         // 删除当前临时节点
         client.delete(currentPath);
+        System.out.println(Thread.currentThread().getName() + ":unlock---------------------------" + currentPath);
     }
 
     // ==========================================

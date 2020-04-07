@@ -1,6 +1,8 @@
 package com.study.demo.lock;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 *
 */
 public class OrderServiceImpl implements Runnable {
+
 	private static OrderCodeGenerator ong = new OrderCodeGenerator();
 
 	private Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
@@ -41,7 +44,7 @@ public class OrderServiceImpl implements Runnable {
 		}
 
 		// ……业务代码
-
+		System.out.println("insert into DB使用id：=======================>" + orderCode);
 		logger.info("insert into DB使用id：=======================>" + orderCode);
 	}
 
@@ -59,11 +62,12 @@ public class OrderServiceImpl implements Runnable {
 	}
 
 	public static void main(String[] args) {
+		ExecutorService pool = Executors.newFixedThreadPool(NUM);
 		for (int i = 1; i <= NUM; i++) {
-			// 按照线程数迭代实例化线程
-			new Thread(new OrderServiceImpl()).start();
-			// 创建一个线程，倒计数器减1
+			OrderServiceImpl worker = new OrderServiceImpl();
+			pool.execute(worker);
 			cdl.countDown();
 		}
+		pool.shutdown();
 	}
 }
